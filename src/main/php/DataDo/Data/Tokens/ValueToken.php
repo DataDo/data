@@ -7,7 +7,7 @@
 namespace DataDo\Data\Tokens;
 
 
-class ValueToken implements Token
+class ValueToken extends AbstractToken
 {
     private $value;
 

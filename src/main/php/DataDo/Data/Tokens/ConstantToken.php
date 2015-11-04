@@ -7,7 +7,7 @@
 namespace DataDo\Data\Tokens;
 
 
-class ConstantToken implements Token
+abstract class ConstantToken extends AbstractToken
 {
     private $name;
 

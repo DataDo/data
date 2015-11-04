@@ -41,7 +41,7 @@ class Repository
     private function addMethod($method)
     {
         $tokens = $this->methodParser->parse($method);
-        print_r($tokens);
+        print_r(json_encode($tokens, JSON_PRETTY_PRINT));
         $query = $this->queryBuilder->build($tokens, $this->tableName);
 
         $findMethod = function () use ($query) {
