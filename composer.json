@@ -1,0 +1,19 @@
+{
+  "name": "datado/data",
+  "type": "library",
+  "description": "PHP to SQL connection dsl",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Thomas Biesaart",
+      "email": "thomas.biesaart@outlook.com"
+    }
+  ],
+  "require": {
+  },
+  "autoload": {
+    "psr-4": {
+      "DataDo\\Data\\": "src/main/php/DataDo/Data"
+    }
+  }
+}
