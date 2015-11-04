@@ -15,6 +15,4 @@ class User {
 $pdo = new \PDO('mysql:host=localhost;dbname=test', 'xillio', 'xillio');
 $repo = new Repository(User::class, 'user', $pdo);
 
-$repo->findAll();
-$repo->getAll();
-$repo->getAllIdByUsername('bob');
+$repo->findIdByUserNameAndTest();

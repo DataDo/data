@@ -1,0 +1,14 @@
+<?php
+/**
+ * //TODO PHPDoc
+ * @author Thomas Biesaart
+ */
+
+namespace DataDo\Data\Tokens;
+
+
+interface Token
+{
+    public function getName();
+    public function getSource();
+}
