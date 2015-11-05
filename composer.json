@@ -15,5 +15,12 @@
     "psr-4": {
       "DataDo\\Data\\": "src/main/php/DataDo/Data"
     }
+  },
+  "archive": {
+    "exclude": [
+      "*",
+      ".*",
+      "!/src/*"
+    ]
   }
 }
