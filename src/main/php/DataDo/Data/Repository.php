@@ -1,11 +1,12 @@
 <?php
 
 namespace DataDo\Data;
-use PDO;
+
 use Closure;
-use ReflectionClass;
 use DataDo\Data\Exceptions\DslSyntaxException;
 use ErrorException;
+use PDO;
+use ReflectionClass;
 
 /**
  * This class is responsible for the communication with the database for your simple queries.
@@ -25,20 +26,22 @@ class Repository
     private $queryBuilder;
     /** @var MethodNameParser */
     private $methodParser;
+    /** @var NamingConvention */
+    private $namingContention;
 
     /**
      * Create a new Repository.
      * @param $class string The full class name of the entity this repository should use
-     * @param $tableName string The name of the table that should be used
      * @param $pdo PDO the connection to the database
      */
-    public function __construct($class, $tableName, PDO $pdo)
+    public function __construct($class, PDO $pdo)
     {
         $this->pdo = $pdo;
-        $this->tableName = $tableName;
         $this->entityClass = new ReflectionClass($class);
         $this->queryBuilder = new DefaultQueryBuilder();
         $this->methodParser = new DefaultMethodNameParser();
+        $this->namingContention = new DefaultNamingConvention();
+        $this->tableName = $this->namingContention->tableName($this->namingContention->classToTableName($this->entityClass));
     }
 
     /**
@@ -62,24 +65,6 @@ class Repository
         throw new ErrorException('Something went wrong. The created method is not callable');
     }
 
-    public function insert(\stdClass $entity)
-    {
-        $class = new \ReflectionClass($entity);
-        $elements = array();
-        foreach ($class->getProperties() as $prop) {
-            $prop->setAccessible(true);
-            $elements[$prop->getName()] = $prop->getValue($entity);
-        }
-        if (count($elements) === 0) {
-            throw new \InvalidArgumentException('Cannot insert elements with no properties');
-        }
-        $values = '?' . str_repeat(', ?', count($elements) - 1);
-
-        $query = 'INSERT INTO ' . $this->tableName . ' (' . implode(array_keys($elements), ', ') . ') VALUES (' . $values . ')';
-        $sth = $this->pdo->prepare($query);
-        return $sth->execute(array_values($elements));
-    }
-
     /**
      * Parse a dsl method and add it to this repository.
      * @param $method string the method name
@@ -88,8 +73,7 @@ class Repository
     private function addMethod($method)
     {
         $tokens = $this->methodParser->parse($method);
-        $query = $this->queryBuilder->build($tokens, $this->tableName);
-
+        $query = $this->queryBuilder->build($tokens, $this->tableName, $this->namingContention, $this->entityClass);
         if ($query->getResultMode() <= QueryBuilderResult::RESULT_SELECT_MULTIPLE) {
             $this->addSelectionMethod($query, $method);
         } else {

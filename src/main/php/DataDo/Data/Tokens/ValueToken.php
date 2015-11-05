@@ -11,11 +11,17 @@ class ValueToken extends AbstractToken
         $this->value = $value;
     }
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return 'Value';
     }
 
+    /**
+     * @return string
+     */
     public function getSource()
     {
         return $this->value;

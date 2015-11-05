@@ -9,6 +9,7 @@ use DataDo\Data\Tokens\AndToken;
 use DataDo\Data\Tokens\ByToken;
 use DataDo\Data\Tokens\OrToken;
 use DataDo\Data\Tokens\ValueToken;
+use ReflectionClass;
 
 /**
  * This is the default implementation of QueryBuilder.
@@ -16,12 +17,13 @@ use DataDo\Data\Tokens\ValueToken;
  */
 class DefaultQueryBuilder implements QueryBuilder
 {
+
     /** {@inheritdoc} */
-    public function build($tokens, $tableName)
+    public function build($tokens, $tableName, $namingConvention, $class)
     {
         $resultMode = $this->getMode($tokens);
-        $fields = $this->getFields($tokens);
-        $constraints = $this->getConstraints($tokens);
+        $fields = $this->getFields($tokens, $namingConvention, $class);
+        $constraints = $this->getConstraints($tokens, $namingConvention, $class);
 
         switch ($resultMode) {
             case QueryBuilderResult::RESULT_SELECT_SINGLE:
@@ -63,10 +65,12 @@ class DefaultQueryBuilder implements QueryBuilder
     /**
      * Build the SQL string for the fields from a MethodNameToken
      * @param MethodNameToken $tokens
+     * @param NamingConvention $namingConvention
+     * @param ReflectionClass $class
      * @return string
      * @throws DslSyntaxException if an unexpected token is found
      */
-    private function getFields($tokens)
+    private function getFields($tokens, $namingConvention, $class)
     {
         $fields = [];
 
@@ -87,7 +91,8 @@ class DefaultQueryBuilder implements QueryBuilder
             if (!($token instanceof ValueToken)) {
                 throw new DslSyntaxException('Unexpected token ' . $token->getName() . ' in field selector', DATADO_UNEXPECTED_TOKEN);
             }
-            $fields[] = $token->getSource();
+
+            $fields[] = $this->tokenToColumn($token, $namingConvention, $class);
         }
 
         return $this->fieldsToSQL($fields);
@@ -95,10 +100,12 @@ class DefaultQueryBuilder implements QueryBuilder
 
     /**
      * @param MethodNameToken $tokens
+     * @param NamingConvention $namingConvention
+     * @param ReflectionClass $class
      * @return string
      * @throws DslSyntaxException if parsing this token failed
      */
-    private function getConstraints($tokens)
+    private function getConstraints($tokens, $namingConvention, $class)
     {
         $hasSeenBy = false;
         $expectingValue = true;
@@ -118,7 +125,7 @@ class DefaultQueryBuilder implements QueryBuilder
                 if (!($token instanceof ValueToken)) {
                     throw new DslSyntaxException('Expected value token in constraint query at ' . $token->getSource(), DATADO_UNEXPECTED_TOKEN);
                 }
-                $result .= $token->getSource() . ' = ?';
+                $result .= $this->tokenToColumn($token, $namingConvention, $class) . ' = ?';
                 $expectingValue = false;
             } else {
                 $expectingValue = true;
@@ -137,6 +144,33 @@ class DefaultQueryBuilder implements QueryBuilder
             return '';
         }
         return $result;
+    }
+
+    /**
+     * Get the column name for a token.
+     * @param ValueToken $token
+     * @param NamingConvention $namingConvention
+     * @param ReflectionClass $class
+     * @return string
+     * @throws DslSyntaxException when no matching property could be found
+     */
+    private function tokenToColumn($token, $namingConvention, $class)
+    {
+        // Find a matching property
+        $property = null;
+        foreach($class->getProperties() as $prop) {
+            if(strcasecmp($token->getSource(), $prop->getName()) === 0) {
+                $property = $prop;
+                break;
+            }
+        }
+
+        if($property === null) {
+            throw new DslSyntaxException('No matching property found for ' . $token->getSource());
+        }
+
+        $columnName = $namingConvention->propertyToColumnName($property);
+        return $namingConvention->columnName($columnName);
     }
 
     private function fieldsToSQL($fields)

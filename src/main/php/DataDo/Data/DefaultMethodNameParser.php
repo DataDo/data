@@ -46,7 +46,7 @@ class DefaultMethodNameParser implements MethodNameParser
      */
     private function getTokens($methodName)
     {
-        preg_match_all('([A-Z][a-z]+)', $methodName, $rawTokens);
+        preg_match_all('([A-Z_-][^A-Z_-]*)', $methodName, $rawTokens);
         $result = array();
         $lastToken = null;
         foreach ($rawTokens[0] as $token) {
@@ -98,6 +98,6 @@ class DefaultMethodNameParser implements MethodNameParser
             return new AllToken();
         }
 
-        return new ValueToken(lcfirst($token));
+        return new ValueToken($token);
     }
 }
