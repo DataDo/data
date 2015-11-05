@@ -1,8 +1,4 @@
 <?php
-/**
- * //TODO PHPDoc
- * @author Thomas Biesaart
- */
 
 namespace DataDo\Data;
 
@@ -14,6 +10,10 @@ use DataDo\Data\Tokens\OrToken;
 use DataDo\Data\Tokens\Token;
 use DataDo\Data\Tokens\ValueToken;
 
+/**
+ * This is the default implementation of MethodNameParser.
+ * @package DataDo\Data
+ */
 class DefaultMethodNameParser implements MethodNameParser
 {
     /**

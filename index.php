@@ -1,8 +1,5 @@
 <?php
-/**
- * //TODO PHPDoc
- * @author Thomas Biesaart
- */
+
 require_once 'vendor/autoload.php';
 
 use DataDo\Data\Repository;

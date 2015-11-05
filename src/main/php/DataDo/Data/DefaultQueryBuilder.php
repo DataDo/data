@@ -1,8 +1,4 @@
 <?php
-/**
- * //TODO PHPDoc
- * @author Thomas Biesaart
- */
 
 namespace DataDo\Data;
 
@@ -14,6 +10,10 @@ use DataDo\Data\Tokens\ByToken;
 use DataDo\Data\Tokens\OrToken;
 use DataDo\Data\Tokens\ValueToken;
 
+/**
+ * This is the default implementation of QueryBuilder.
+ * @package DataDo\Data
+ */
 class DefaultQueryBuilder implements QueryBuilder
 {
     /** {@inheritdoc} */
