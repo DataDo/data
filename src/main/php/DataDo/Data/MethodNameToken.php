@@ -7,6 +7,8 @@
 namespace DataDo\Data;
 
 
+use DataDo\Data\Tokens\Token;
+
 class MethodNameToken implements \JsonSerializable
 {
     private $methodName;
@@ -28,7 +30,7 @@ class MethodNameToken implements \JsonSerializable
 
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getMethodName()
     {
@@ -36,7 +38,7 @@ class MethodNameToken implements \JsonSerializable
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getQueryMode()
     {
@@ -44,7 +46,7 @@ class MethodNameToken implements \JsonSerializable
     }
 
     /**
-     * @return mixed
+     * @return Token[]
      */
     public function getTokens()
     {
@@ -59,7 +61,7 @@ class MethodNameToken implements \JsonSerializable
      * @return mixed data which can be serialized by <b>json_encode</b>,
      * which is a value of any type other than a resource.
      */
-    function jsonSerialize()
+    public function jsonSerialize()
     {
         return [
             'source' => $this->methodName,

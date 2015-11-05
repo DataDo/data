@@ -7,31 +7,43 @@
 namespace DataDo\Data;
 
 
+use DataDo\Data\Tokens\AllToken;
 use DataDo\Data\Tokens\AndToken;
 use DataDo\Data\Tokens\ByToken;
 use DataDo\Data\Tokens\OrToken;
+use DataDo\Data\Tokens\Token;
 use DataDo\Data\Tokens\ValueToken;
 
 class DefaultMethodNameParser implements MethodNameParser
 {
-
+    /**
+     * {@inheritdoc}
+     */
     public function parse($methodName)
     {
-        $result = new MethodNameToken(
+        return new MethodNameToken(
             $methodName,
             $this->getQueryMode($methodName),
             $this->getTokens($methodName)
         );
-
-        return $result;
     }
 
+    /**
+     * Get the first word of the method as the query mode.
+     * @param $methodName string the name of the method
+     * @return string the query mode token
+     */
     private function getQueryMode($methodName)
     {
         $index = strcspn($methodName, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
         return substr($methodName, 0, $index);
     }
 
+    /**
+     * Split the method name into tokens and parse them.
+     * @param $methodName string the method name
+     * @return Token[]
+     */
     private function getTokens($methodName)
     {
         preg_match_all('([A-Z][a-z]+)', $methodName, $rawTokens);
@@ -41,13 +53,9 @@ class DefaultMethodNameParser implements MethodNameParser
             $newToken = $this->getToken($token);
 
             if ($newToken instanceof ValueToken) {
-                if ($lastToken != null && $lastToken instanceof ValueToken) {
-                    // Append this
-                    $lastToken = new ValueToken($lastToken->getSource() . $newToken->getSource());
-                } else {
-                    // This is the start of a new token
-                    $lastToken = $newToken;
-                }
+                $lastToken = $lastToken !== null && $lastToken instanceof ValueToken ?
+                    new ValueToken($lastToken->getSource() . $newToken->getSource()) :
+                    $newToken;
             } else {
                 if ($lastToken instanceof ValueToken) {
                     // Add the last token too
@@ -58,7 +66,7 @@ class DefaultMethodNameParser implements MethodNameParser
             }
         }
 
-        if($lastToken !== null) {
+        if ($lastToken !== null) {
             $result[] = $lastToken;
         }
 
@@ -67,6 +75,11 @@ class DefaultMethodNameParser implements MethodNameParser
     }
 
 
+    /**
+     * Translate a token source to a token object.
+     * @param $token string the token source
+     * @return Token the token object
+     */
     private function getToken($token)
     {
         if ($token === 'And') {
@@ -77,10 +90,14 @@ class DefaultMethodNameParser implements MethodNameParser
             return new OrToken();
         }
 
-        if ($token === 'By') {
+        if ($token === 'By' || $token === 'Where') {
             return new ByToken();
         }
 
-        return new ValueToken($token);
+        if ($token === 'All') {
+            return new AllToken();
+        }
+
+        return new ValueToken(lcfirst($token));
     }
 }
