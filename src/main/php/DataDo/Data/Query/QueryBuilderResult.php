@@ -1,9 +1,11 @@
 <?php
 
-namespace DataDo\Data;
+namespace DataDo\Data\Query;
 
 
-class QueryBuilderResult
+use JsonSerializable;
+
+class QueryBuilderResult implements JsonSerializable
 {
     /** @var  string */
     private $sql;
@@ -36,5 +38,14 @@ class QueryBuilderResult
     public function getResultMode()
     {
         return $this->resultMode;
+    }
+
+    /** {@inheritdoc} */
+    public function jsonSerialize()
+    {
+        return array(
+            'sql' => $this->getSql(),
+            'mode' => $this->getResultMode()
+        );
     }
 }

@@ -9,12 +9,13 @@ class User {
     public $username;
 }
 
-$pdo = new \PDO('mysql:host=localhost;dbname=test', 'xillio', 'xillio');
+$pdo = new PDO('mysql:host=localhost;dbname=test', 'xillio', 'xillio');
 
 $repo = new Repository(User::class, $pdo);
 
-show($repo->findByUsername('other'));
+show($repo->getByUsername('other'));
 
 function show($message) {
     print_r(PHP_EOL . json_encode($message, JSON_PRETTY_PRINT));
 }
+

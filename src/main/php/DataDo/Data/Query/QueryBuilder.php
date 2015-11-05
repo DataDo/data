@@ -1,9 +1,11 @@
 <?php
 
-namespace DataDo\Data;
+namespace DataDo\Data\Query;
 
 
 use DataDo\Data\Exceptions\DslSyntaxException;
+use DataDo\Data\MethodNameToken;
+use DataDo\Data\NamingConvention;
 use ReflectionClass;
 
 interface QueryBuilder

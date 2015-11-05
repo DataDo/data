@@ -1,9 +1,11 @@
 <?php
 
-namespace DataDo\Data;
+namespace DataDo\Data\Query;
 
 
 use DataDo\Data\Exceptions\DslSyntaxException;
+use DataDo\Data\MethodNameToken;
+use DataDo\Data\NamingConvention;
 use DataDo\Data\Tokens\AllToken;
 use DataDo\Data\Tokens\AndToken;
 use DataDo\Data\Tokens\ByToken;
@@ -15,7 +17,7 @@ use ReflectionClass;
  * This is the default implementation of QueryBuilder.
  * @package DataDo\Data
  */
-class DefaultQueryBuilder implements QueryBuilder
+class DefaultQueryBuilder extends AbstractQueryBuilder
 {
 
     /** {@inheritdoc} */
@@ -158,14 +160,14 @@ class DefaultQueryBuilder implements QueryBuilder
     {
         // Find a matching property
         $property = null;
-        foreach($class->getProperties() as $prop) {
-            if(strcasecmp($token->getSource(), $prop->getName()) === 0) {
+        foreach ($class->getProperties() as $prop) {
+            if (strcasecmp($token->getSource(), $prop->getName()) === 0) {
                 $property = $prop;
                 break;
             }
         }
 
-        if($property === null) {
+        if ($property === null) {
             throw new DslSyntaxException('No matching property found for ' . $token->getSource());
         }
 

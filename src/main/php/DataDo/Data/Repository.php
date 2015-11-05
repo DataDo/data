@@ -4,9 +4,15 @@ namespace DataDo\Data;
 
 use Closure;
 use DataDo\Data\Exceptions\DslSyntaxException;
+use DataDo\Data\Parser\DefaultMethodNameParser;
+use DataDo\Data\Parser\MethodNameParser;
+use DataDo\Data\Query\DefaultQueryBuilder;
+use DataDo\Data\Query\QueryBuilder;
+use DataDo\Data\Query\QueryBuilderResult;
 use ErrorException;
 use PDO;
 use ReflectionClass;
+use stdClass;
 
 /**
  * This class is responsible for the communication with the database for your simple queries.
@@ -45,6 +51,15 @@ class Repository
     }
 
     /**
+     * Insert an entity into the database.
+     * @param stdClass $entity
+     */
+    public function insert(stdClass $entity)
+    {
+
+    }
+
+    /**
      * Call a dsl method and create it if it does not exist.
      * @param $method
      * @param $args
@@ -52,7 +67,7 @@ class Repository
      * @throws ErrorException
      * @throws DslSyntaxException if parsing the dsl method failed
      */
-    public function __call($method, $args)
+    public function __call($method, array $args)
     {
         if (!array_key_exists($method, $this->methods)) {
             $this->addMethod($method);
@@ -74,6 +89,7 @@ class Repository
     {
         $tokens = $this->methodParser->parse($method);
         $query = $this->queryBuilder->build($tokens, $this->tableName, $this->namingContention, $this->entityClass);
+
         if ($query->getResultMode() <= QueryBuilderResult::RESULT_SELECT_MULTIPLE) {
             $this->addSelectionMethod($query, $method);
         } else {

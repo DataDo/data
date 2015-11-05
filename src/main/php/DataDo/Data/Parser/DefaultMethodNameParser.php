@@ -1,8 +1,9 @@
 <?php
 
-namespace DataDo\Data;
+namespace DataDo\Data\Parser;
 
 
+use DataDo\Data\MethodNameToken;
 use DataDo\Data\Tokens\AllToken;
 use DataDo\Data\Tokens\AndToken;
 use DataDo\Data\Tokens\ByToken;
@@ -14,7 +15,7 @@ use DataDo\Data\Tokens\ValueToken;
  * This is the default implementation of MethodNameParser.
  * @package DataDo\Data
  */
-class DefaultMethodNameParser implements MethodNameParser
+class DefaultMethodNameParser extends AbstractMethodNameParser
 {
     /**
      * {@inheritdoc}

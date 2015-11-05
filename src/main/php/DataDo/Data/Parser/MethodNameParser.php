@@ -1,7 +1,9 @@
 <?php
 
-namespace DataDo\Data;
+namespace DataDo\Data\Parser;
 
+
+use DataDo\Data\MethodNameToken;
 
 interface MethodNameParser
 {
