@@ -12,6 +12,7 @@ use DataDo\Data\Query\QueryBuilderResult;
 use ErrorException;
 use PDO;
 use ReflectionClass;
+use ReflectionProperty;
 use stdClass;
 
 /**
@@ -34,16 +35,24 @@ class Repository
     private $methodParser;
     /** @var NamingConvention */
     private $namingContention;
+    /**
+     * @var ReflectionProperty
+     */
+    private $idProperty;
 
     /**
      * Create a new Repository.
+     * Optionally you can provide the name of the id property. This is the property that will be used when updating an entity.
      * @param $class string The full class name of the entity this repository should use
      * @param $pdo PDO the connection to the database
+     * @param string $idProperty the name of the property that is used as the row id
      */
-    public function __construct($class, PDO $pdo)
+    public function __construct($class, PDO $pdo, $idProperty)
     {
         $this->pdo = $pdo;
         $this->entityClass = new ReflectionClass($class);
+        $this->idProperty = $this->entityClass->getProperty($idProperty);
+        $this->idProperty->setAccessible(true);
         $this->queryBuilder = new DefaultQueryBuilder();
         $this->methodParser = new DefaultMethodNameParser();
         $this->namingContention = new DefaultNamingConvention();
@@ -52,11 +61,27 @@ class Repository
 
     /**
      * Insert an entity into the database.
-     * @param stdClass $entity
+     * You can optionally provide a property name. If you do the inserted id will be assigned to that property.
+     * @param $entity
+     * @param string $idProperty the name of the property that should hold the id
+     * @return integer the id of the row that was inserted
      */
-    public function insert(stdClass $entity)
+    public function insert($entity)
     {
+        $values = $this->getInsertValues($entity, $this->namingContention);
+        $keyString = implode(array_keys($values), ', ');
+        $questionMarkString = count($values) === 0 ? '' : ('?' . str_repeat(', ?', count($values) - 1));
 
+        $sql = "INSERT INTO $this->tableName ($keyString) VALUES ($questionMarkString)";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(array_values($values));
+        $id = $this->pdo->lastInsertId();
+
+        if($this->idProperty !== null) {
+            $this->idProperty->setValue($entity, $id);
+        }
+
+        return $id;
     }
 
     /**
@@ -140,5 +165,18 @@ class Repository
         };
 
         $this->methods[$methodName] = \Closure::bind($intResultMethod, $this, get_class());
+    }
+
+
+    private function getInsertValues($entity, NamingConvention $namingContention)
+    {
+        $result = [];
+        foreach($this->entityClass->getProperties() as $property) {
+            $property->setAccessible(true);
+            $columnName = $namingContention->columnName($namingContention->propertyToColumnName($property));
+
+            $result[$columnName] = $property->getValue($entity);
+        }
+        return $result;
     }
 }
