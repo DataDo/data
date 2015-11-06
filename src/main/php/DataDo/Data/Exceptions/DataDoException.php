@@ -17,3 +17,4 @@ abstract class DataDoException extends Exception
 
 define('DATADO_ERROR', 60000);
 define('DATADO_SYNTAX_ERROR', DATADO_ERROR + 7000);
+define('DATADO_CONFIG_ERROR', DATADO_ERROR + 8000);

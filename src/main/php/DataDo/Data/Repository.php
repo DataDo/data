@@ -3,6 +3,7 @@
 namespace DataDo\Data;
 
 use Closure;
+use DataDo\Data\Exceptions\ConfigurationException;
 use DataDo\Data\Exceptions\DslSyntaxException;
 use DataDo\Data\Parser\DefaultMethodNameParser;
 use DataDo\Data\Parser\MethodNameParser;
@@ -13,7 +14,6 @@ use ErrorException;
 use PDO;
 use ReflectionClass;
 use ReflectionProperty;
-use stdClass;
 
 /**
  * This class is responsible for the communication with the database for your simple queries.
@@ -63,7 +63,6 @@ class Repository
      * Insert an entity into the database.
      * You can optionally provide a property name. If you do the inserted id will be assigned to that property.
      * @param $entity
-     * @param string $idProperty the name of the property that should hold the id
      * @return integer the id of the row that was inserted
      */
     public function insert($entity)
@@ -77,11 +76,57 @@ class Repository
         $sth->execute(array_values($values));
         $id = $this->pdo->lastInsertId();
 
-        if($this->idProperty !== null) {
+        if ($this->idProperty !== null) {
             $this->idProperty->setValue($entity, $id);
         }
 
         return $id;
+    }
+
+    /**
+     * Update an existing entity in the database.
+     * @param mixed $entity the entity
+     * @return int the id of the entity
+     * @throws ConfigurationException if no idProperty was set
+     */
+    public function update($entity)
+    {
+        if ($this->idProperty === null) {
+            throw new ConfigurationException('No idProperty set');
+        }
+
+        $id = $this->idProperty->getValue($entity);
+
+        if ($id === null) {
+            throw new ConfigurationException('Value of ' . $this->idProperty->getName() . ' is null');
+        }
+
+        $values = $this->getInsertValues($entity, $this->namingContention);
+        $keyString = implode(array_keys($values), ' = ?,') . ' = ?';
+        $idColumn = $this->namingContention->columnName($this->namingContention->propertyToColumnName($this->idProperty));
+        $onlyValues = array_values($values);
+        $onlyValues[] = $id;
+
+        $sql = "UPDATE $this->tableName SET $keyString WHERE $idColumn = ?";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute($onlyValues);
+        return $id;
+    }
+
+    /**
+     * Insert an entity into the database if it has no id yet. Otherwise update it by id.
+     * @param mixed $entity the entity
+     * @return int the id of the saved document
+     * @throws ConfigurationException if no idProperty was set
+     */
+    public function save($entity)
+    {
+        if ($this->idProperty->getValue($entity) === null) {
+            return $this->insert($entity);
+        } else {
+            return $this->update($entity);
+        }
+
     }
 
     /**
@@ -114,7 +159,6 @@ class Repository
     {
         $tokens = $this->methodParser->parse($method);
         $query = $this->queryBuilder->build($tokens, $this->tableName, $this->namingContention, $this->entityClass);
-
         if ($query->getResultMode() <= QueryBuilderResult::RESULT_SELECT_MULTIPLE) {
             $this->addSelectionMethod($query, $method);
         } else {
@@ -171,7 +215,7 @@ class Repository
     private function getInsertValues($entity, NamingConvention $namingContention)
     {
         $result = [];
-        foreach($this->entityClass->getProperties() as $property) {
+        foreach ($this->entityClass->getProperties() as $property) {
             $property->setAccessible(true);
             $columnName = $namingContention->columnName($namingContention->propertyToColumnName($property));
 

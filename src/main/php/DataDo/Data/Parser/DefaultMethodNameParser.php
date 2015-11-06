@@ -83,22 +83,18 @@ class DefaultMethodNameParser extends AbstractMethodNameParser
      */
     private function getToken($token)
     {
-        if ($token === 'And') {
-            return new AndToken();
+        switch($token) {
+            case 'And':
+                return new AndToken();
+            case 'Or':
+                return new OrToken();
+            case 'By':
+            case 'Where':
+                return new ByToken();
+            case 'All':
+                return new AllToken();
+            default:
+                return new ValueToken($token);
         }
-
-        if ($token === 'Or') {
-            return new OrToken();
-        }
-
-        if ($token === 'By' || $token === 'Where') {
-            return new ByToken();
-        }
-
-        if ($token === 'All') {
-            return new AllToken();
-        }
-
-        return new ValueToken($token);
     }
 }
