@@ -151,6 +151,11 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
 
 
         }
+        
+        if($lastToken instanceof ValueToken) {
+            $result .= ' = ?';
+        }
+
         if (!$hasSeenBy) {
             return '';
         }
