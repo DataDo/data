@@ -17,7 +17,7 @@ class DefaultNamingConvention implements NamingConvention
     public function classToTableName($class)
     {
         $shortName = $class->getShortName();
-        $tableName = strtolower($shortName);
+        $tableName = $this->removeCamelCasing($shortName);
         return $tableName;
     }
 
@@ -25,8 +25,15 @@ class DefaultNamingConvention implements NamingConvention
     public function propertyToColumnName($property)
     {
         $name = $property->getName();
-        $columnName = preg_replace('([A-Z])', '_$0', $name);
-        $columnName = strtolower($columnName);
+        $columnName = $this->removeCamelCasing($name);
         return $columnName;
+    }
+
+    private function removeCamelCasing($input)
+    {
+        $output = lcfirst($input);
+        $output = preg_replace('([A-Z])', '_$0', $output);
+        $output = strtolower($output);
+        return $output;
     }
 }

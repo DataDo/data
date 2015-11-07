@@ -228,10 +228,11 @@ class Repository
 
     /**
      * This method will run some analysis on the correctness of your configuration. It will be exported to the screen.
+     * @param boolean $showAllData set this to false if you want to hide the entities row
      */
-    public function checkDatabase()
+    public function checkDatabase($showAllData = true)
     {
-        switch($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)) {
+        switch ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)) {
             case 'mysql':
                 $sth = $this->pdo->prepare('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = ?');
                 $sth->execute(array($this->tableName));
@@ -273,10 +274,10 @@ class Repository
             return isset($value) ? $value : $default;
         };
 
-        $pdoAtt = function($att) {
+        $pdoAtt = function ($att) {
             try {
                 return $this->pdo->getAttribute($att);
-            } catch(PDOException $e) {
+            } catch (PDOException $e) {
                 return 'Not supported by driver';
             }
         };
@@ -284,14 +285,12 @@ class Repository
         $getClass = function (stdClass $prop) use ($issetOr) {
             $classes = $issetOr($prop->expectedColumnName) === $issetOr($prop->actualColumnName) ? 'correct' : 'error';
 
-            if($issetOr($prop->propertyName) === $this->idProperty->getName()) {
+            if ($issetOr($prop->propertyName) === $this->idProperty->getName()) {
                 $classes .= ' primary-key';
             }
 
             return $classes;
         };
-
-        ;
 
 
         include 'Check/checkDatabaseTable.php';
