@@ -48,7 +48,7 @@
     <?php endforeach; ?>
     <?php if ($showAllData): $entities = $this->findAll(); ?>
         <tr>
-            <th rowspan="<?= count($entities) + 1 ?>">Entities</th>
+            <th rowspan="<?= count($entities) + 1 ?>">Entities (<?=count($entities)?>)</th>
         </tr>
         <?php foreach ($entities as $entity): ?>
             <tr class="entity-row">
