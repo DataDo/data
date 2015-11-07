@@ -154,6 +154,16 @@ class Repository
     }
 
     /**
+     * @return ReflectionClass
+     */
+    public function getEntityClass()
+    {
+        return $this->entityClass;
+    }
+
+
+
+    /**
      * Call a dsl method and create it if it does not exist.
      * @param $method
      * @param $args
