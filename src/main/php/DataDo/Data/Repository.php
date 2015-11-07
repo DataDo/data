@@ -132,6 +132,17 @@ class Repository
     }
 
     /**
+     * Get an entity by it's idProperty value.
+     * @param mixed $id the id value
+     * @return mixed the entity
+     * @throws ErrorException
+     */
+    public function get($id) {
+        $idName = ucfirst($this->idProperty->getName());
+        return $this->__call("getBy$idName", array($id));
+    }
+
+    /**
      * Call a dsl method and create it if it does not exist.
      * @param $method
      * @param $args
