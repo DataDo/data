@@ -1,0 +1,31 @@
+
+.error {
+    background-color: rgba(255, 0, 0, 0.3);
+    font-weight: bold;
+}
+
+.correct {
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+table.check-table {
+    font-family: Verdana, Geneva, sans-serif;
+    border-collapse: collapse;
+    border-spacing: 0;
+    text-align: left;
+    margin: 5px;
+    padding: 0;
+    border: solid #67BCDB;
+}
+
+table.check-table th {
+    vertical-align: top;
+    background-color: #67BCDB;
+    color: white;
+    font-weight: 500;
+    padding: 10px;
+}
+
+table.check-table td {
+    padding: 5px;
+}

@@ -187,8 +187,7 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
             throw new DslSyntaxException('No matching property found for ' . $token->getSource());
         }
 
-        $columnName = $namingConvention->propertyToColumnName($property);
-        return $namingConvention->columnName($columnName);
+        return $namingConvention->propertyToColumnName($property);
     }
 
     private function fieldsToSQL($fields)

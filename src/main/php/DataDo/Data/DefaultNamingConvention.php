@@ -17,12 +17,7 @@ class DefaultNamingConvention implements NamingConvention
     public function classToTableName($class)
     {
         $shortName = $class->getShortName();
-        return $shortName;
-    }
-
-    /** {$@inheritdoc} */
-    public function tableName($tableName)
-    {
+        $tableName = strtolower($shortName);
         return $tableName;
     }
 
@@ -30,12 +25,8 @@ class DefaultNamingConvention implements NamingConvention
     public function propertyToColumnName($property)
     {
         $name = $property->getName();
-        return $name;
-    }
-
-    /** {$@inheritdoc} */
-    public function columnName($columnName)
-    {
+        $columnName = preg_replace('([A-Z])', '_$0', $name);
+        $columnName = strtolower($columnName);
         return $columnName;
     }
 }

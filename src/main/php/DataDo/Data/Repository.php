@@ -12,8 +12,10 @@ use DataDo\Data\Query\QueryBuilder;
 use DataDo\Data\Query\QueryBuilderResult;
 use ErrorException;
 use PDO;
+use PDOException;
 use ReflectionClass;
 use ReflectionProperty;
+use stdClass;
 
 /**
  * This class is responsible for the communication with the database for your simple queries.
@@ -56,7 +58,7 @@ class Repository
         $this->queryBuilder = new DefaultQueryBuilder();
         $this->methodParser = new DefaultMethodNameParser();
         $this->namingContention = new DefaultNamingConvention();
-        $this->tableName = $this->namingContention->tableName($this->namingContention->classToTableName($this->entityClass));
+        $this->tableName = $this->namingContention->classToTableName($this->entityClass);
     }
 
     /**
@@ -103,7 +105,7 @@ class Repository
 
         $values = $this->getInsertValues($entity, $this->namingContention);
         $keyString = implode(array_keys($values), ' = ?,') . ' = ?';
-        $idColumn = $this->namingContention->columnName($this->namingContention->propertyToColumnName($this->idProperty));
+        $idColumn = $this->namingContention->propertyToColumnName($this->idProperty);
         $onlyValues = array_values($values);
         $onlyValues[] = $id;
 
@@ -217,10 +219,75 @@ class Repository
         $result = [];
         foreach ($this->entityClass->getProperties() as $property) {
             $property->setAccessible(true);
-            $columnName = $namingContention->columnName($namingContention->propertyToColumnName($property));
+            $columnName = $namingContention->propertyToColumnName($property);
 
             $result[$columnName] = $property->getValue($entity);
         }
         return $result;
+    }
+
+    /**
+     * This method will run some analysis on the correctness of your configuration. It will be exported to the screen.
+     */
+    public function checkDatabase()
+    {
+        switch($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)) {
+            case 'mysql':
+                $sth = $this->pdo->prepare('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = ?');
+                $sth->execute(array($this->tableName));
+                $columnNameColumn = 'COLUMN_NAME';
+                break;
+            case 'sqlite':
+                $sth = $this->pdo->prepare("PRAGMA table_info($this->tableName)");
+                $sth->execute();
+                $columnNameColumn = 'name';
+                break;
+            default:
+                echo '<p>SQL Driver: ' . $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) . ' is not supported by the checking tool... sorry</p>' . PHP_EOL;
+                return;
+        }
+        $tableProperties = $sth->fetchAll();
+        $classProperties = $this->entityClass->getProperties();
+
+        $properties = [];
+
+        foreach ($tableProperties as $prop) {
+            $newProp = new stdClass();
+            $newProp->actualColumnName = $prop[$columnNameColumn];
+            $properties[$newProp->actualColumnName] = $newProp;
+        }
+
+        foreach ($classProperties as $prop) {
+            $expectedColumnName = $this->namingContention->propertyToColumnName($prop);
+            if (array_key_exists($expectedColumnName, $properties)) {
+                $newProp = $properties[$expectedColumnName];
+            } else {
+                $newProp = new stdClass();
+                $properties[$expectedColumnName] = $newProp;
+            }
+            $newProp->propertyName = $prop->getName();
+            $newProp->expectedColumnName = $expectedColumnName;
+        }
+
+        $issetOr = function (&$value, $default = '') {
+            return isset($value) ? $value : $default;
+        };
+
+        $pdoAtt = function($att) {
+            try {
+                return $this->pdo->getAttribute($att);
+            } catch(PDOException $e) {
+                return 'Not supported by driver';
+            }
+        };
+
+        $getClass = function (stdClass $prop) use ($issetOr) {
+            return $issetOr($prop->expectedColumnName) === $issetOr($prop->actualColumnName) ? 'correct' : 'error';
+        };
+
+        ;
+
+
+        include 'Check/checkDatabaseTable.php';
     }
 }
