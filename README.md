@@ -23,10 +23,13 @@ sql, how do I get my data from the database?'. That's where the trick comes in.
     // First we will have to connect to out database
     $pdo = new PDO('mysql:host=localhost;dbname=demo', 'username', 'secret_password');
     
-    /* Then we create the repository we mentioned earlier. To be able to do this we need some information:
+    /* Then we create the repository we mentioned earlier. To be able to do this we need 
+     * some information:
+     * 
      * - The class of the entity we want to store or get from this repository
      * - The PDO connection to the database
-     * - The name of the property that identifies this entity. This will be used when updating and inserting objects
+     * - The name of the property that identifies this entity. This will be used when 
+     *     updating and inserting objects
      */
     $repository = new Repository(File::class, $pdo, 'id');
 ```
@@ -39,6 +42,10 @@ the repository has a convenient tool. Run it like this:
 
     $repository->checkDatabase();
 ```
+
+If you view this output in your browser you should see an overview of the connection between your class and the database.
+Most of the *Properties* rows are read because you haven't created the table or columns. You can use this overview as
+a reference when doing that.
 
 ## Inserting Data
 So now we've created our database and tables we're ready to insert some data.
@@ -93,7 +100,7 @@ Let's take a look at some more examples.
     /* The 'get' query if very much like the 'find' query except this query will 
      * only return the first match.
      */
-    $myFile = $repository->getFileByFileName('index.php');
+    $myFile = $repository->getFileByFileSizeAndFileNameLike(1032, '%.php');
      
      /* Then finally there is the 'delete' query. This query does not accept the
       * selection fields. (The bit before the By keyword). It will delete all
@@ -106,12 +113,28 @@ Let's take a look at some more examples.
      
      // Delete specific files
      $repository->deleteById(235);
-    
 ```
 
-If you view this output in your browser you should see an overview of the connection between your class and the database.
-Most of the *Properties* rows are read because you haven't created the table or columns. You can use this overview as
-a reference when doing that.
+#### Keywords
+
+ - **delete** - Create a query that will delete all matches
+ - **find**   - Create a query that will return a list of matches
+ - **get**    - Create a query that will return a single match
+ - **By**     - Marks the start of the filter section
+ - Filter: **And**    - Represents the boolean *and* operator for two filters
+ - Filter: **Or**     - Represents the boolean *or*  operator for two filters
+ - Filter: **Like**   - Represents the SQL   *LIKE*  operator. This takes an argument.
+
+#### Property Projection
+To only fetch certain properties you can follow the query mode (delete, find or get) by the properties you want to get
+separated by the And keyword.
+
+**Note that you must capitalize the first letter of the field names you need.**
+
+```php
+
+$repository->getIdAndFilePathAndFileSize();
+```
 
 # License
 This project is licensed under the MIT license
