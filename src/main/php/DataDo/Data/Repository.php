@@ -132,6 +132,46 @@ class Repository
     }
 
     /**
+     * Get an entity by it's idProperty value.
+     * @param mixed $id the id value
+     * @return mixed the entity
+     * @throws ErrorException
+     */
+    public function get($id)
+    {
+        $idName = ucfirst($this->idProperty->getName());
+        return $this->__call("getBy$idName", array($id));
+    }
+
+    /**
+     * Delete an entity by it's idProperty value.
+     * @param mixed $id the id value
+     * @return mixed the entity
+     * @throws ErrorException
+     */
+    public function delete($id)
+    {
+        $idName = ucfirst($this->idProperty->getName());
+        return $this->__call("deleteBy$idName", array($id));
+    }
+
+    /**
+     * @return ReflectionClass
+     */
+    public function getEntityClass()
+    {
+        return $this->entityClass;
+    }
+
+    /**
+     * @return ReflectionProperty
+     */
+    public function getIdProperty()
+    {
+        return $this->idProperty;
+    }
+
+    /**
      * Call a dsl method and create it if it does not exist.
      * @param $method
      * @param $args
@@ -177,12 +217,17 @@ class Repository
      */
     private function addSelectionMethod(QueryBuilderResult $query, $methodName)
     {
-        $findMethod = function () use ($query) {
+        $findMethod = function () use ($query, $methodName) {
 
             $sth = $this->pdo->prepare($query->getSql());
             /** @noinspection PhpMethodParametersCountMismatchInspection */
             $sth->setFetchMode(\PDO::FETCH_CLASS, $this->entityClass->getName());
-            $sth->execute(func_get_args());
+            try {
+                $sth->execute(func_get_args());
+            } catch (PDOException $e) {
+                throw new DslSyntaxException('Failed to run query [' . $methodName . '] with parameters ' . print_r(func_get_args(), true));
+            }
+
             switch ($query->getResultMode()) {
                 case QueryBuilderResult::RESULT_SELECT_SINGLE:
                     return $sth->fetch();
@@ -222,7 +267,7 @@ class Repository
             $columnName = $namingContention->propertyToColumnName($property);
 
             $value = $property->getValue($entity);
-            if(is_bool($value)) {
+            if (is_bool($value)) {
                 $value = $value ? 1 : 0;
             }
             $result[$columnName] = $value;
