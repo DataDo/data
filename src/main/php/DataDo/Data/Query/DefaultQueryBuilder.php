@@ -9,6 +9,7 @@ use DataDo\Data\NamingConvention;
 use DataDo\Data\Tokens\AllToken;
 use DataDo\Data\Tokens\AndToken;
 use DataDo\Data\Tokens\ByToken;
+use DataDo\Data\Tokens\DistinctToken;
 use DataDo\Data\Tokens\LikeToken;
 use DataDo\Data\Tokens\OrToken;
 use DataDo\Data\Tokens\ValueToken;
@@ -76,14 +77,20 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
     private function getFields($tokens, $namingConvention, $class)
     {
         $fields = [];
+        $prefix = '';
 
         foreach ($tokens->getTokens() as $token) {
             if ($token instanceof ByToken) {
-                return $this->fieldsToSQL($fields, $class, $namingConvention);
+                return $prefix . $this->fieldsToSQL($fields, $class, $namingConvention);
             }
 
             if ($token instanceof AllToken) {
-                return $this->fieldsToSQL([], $class, $namingConvention);
+                return $prefix . $this->fieldsToSQL([], $class, $namingConvention);
+            }
+
+            if($token instanceof DistinctToken) {
+                $prefix .= 'DISTINCT ';
+                continue;
             }
 
             if ($token instanceof AndToken) {
@@ -95,10 +102,34 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
                 throw new DslSyntaxException('Unexpected token ' . $token->getName() . ' in field selector', DATADO_UNEXPECTED_TOKEN);
             }
 
-            $fields[] = $token;
+            $fields[] = lcfirst($token->getSource());
         }
 
-        return $this->fieldsToSQL($fields, $class, $namingConvention);
+        return $prefix . $this->fieldsToSQL($fields, $class, $namingConvention);
+    }
+
+    private function fieldsToSQL(array $fields, ReflectionClass $class, NamingConvention $namingConvention)
+    {
+        if (0 === count($fields)) {
+            // We need all fields
+            foreach ($class->getProperties() as $prop) {
+                $fields[] = $prop->getName();
+            }
+        }
+
+        try {
+            $namedFields = @array_map(
+                function ($field) use ($namingConvention, $class) {
+                    $columnName = $namingConvention->propertyToColumnName($class->getProperty($field));
+                    return "$columnName as $field";
+                },
+                $fields
+            );
+        }catch(\ReflectionException $e) {
+            throw new DslSyntaxException($e->getMessage());
+        }
+
+        return implode($namedFields, ', ');
     }
 
     /**
@@ -188,25 +219,5 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
         }
 
         return $namingConvention->propertyToColumnName($property);
-    }
-
-    private function fieldsToSQL(array $fields, ReflectionClass $class, NamingConvention $namingConvention)
-    {
-        if (0 === count($fields)) {
-            // We need all fields
-            foreach ($class->getProperties() as $prop) {
-                $fields[] = $prop->getName();
-            }
-        }
-
-        $namedFields = array_map(
-            function ($field) use($namingConvention, $class) {
-                $columnName = $namingConvention->propertyToColumnName($class->getProperty($field));
-                return "$columnName as $field";
-            },
-            $fields
-        );
-
-        return implode($namedFields, ', ');
     }
 }

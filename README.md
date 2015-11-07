@@ -117,10 +117,11 @@ Let's take a look at some more examples.
 
 #### Keywords
 
- - **delete** - Create a query that will delete all matches
- - **find**   - Create a query that will return a list of matches
- - **get**    - Create a query that will return a single match
- - **By**     - Marks the start of the filter section
+ - **delete**   - Create a query that will delete all matches
+ - **find**     - Create a query that will return a list of matches
+ - **get**      - Create a query that will return a single match
+ - **Distinct** - Only return distinct values. Example: findDistinctUsername();
+ - **By**       - Marks the start of the filter section
  - Filter: **And**    - Represents the boolean *and* operator for two filters
  - Filter: **Or**     - Represents the boolean *or*  operator for two filters
  - Filter: **Like**   - Represents the SQL   *LIKE*  operator. This takes an argument.

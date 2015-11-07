@@ -221,7 +221,11 @@ class Repository
             $property->setAccessible(true);
             $columnName = $namingContention->propertyToColumnName($property);
 
-            $result[$columnName] = $property->getValue($entity);
+            $value = $property->getValue($entity);
+            if(is_bool($value)) {
+                $value = $value ? 1 : 0;
+            }
+            $result[$columnName] = $value;
         }
         return $result;
     }
