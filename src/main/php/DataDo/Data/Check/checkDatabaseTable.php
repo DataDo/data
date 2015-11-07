@@ -47,7 +47,3 @@
         </tr>
     <?php endforeach; ?>
 </table>
-<script>
-    <?php require_once 'checkDatabaseTable.js' ?>
-
-</script>
