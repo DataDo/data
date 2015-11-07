@@ -51,8 +51,9 @@ class DefaultMethodNameParser extends AbstractMethodNameParser
         preg_match_all('([A-Z_-][^A-Z_-]*)', $methodName, $rawTokens);
         $result = array();
         $lastToken = null;
+        $seenBy = false;
         foreach ($rawTokens[0] as $token) {
-            $newToken = $this->getToken($token);
+            $newToken = $this->getToken($token, $seenBy);
 
             if ($newToken instanceof ValueToken) {
                 $lastToken = $lastToken !== null && $lastToken instanceof ValueToken ?
@@ -82,20 +83,25 @@ class DefaultMethodNameParser extends AbstractMethodNameParser
      * @param $token string the token source
      * @return Token the token object
      */
-    private function getToken($token)
+    private function getToken($token, &$hasSeenBy)
     {
-        switch($token) {
+        switch ($token) {
             case 'And':
                 return new AndToken();
             case 'Or':
                 return new OrToken();
             case 'By':
             case 'Where':
+                $hasSeenBy = true;
                 return new ByToken();
             case 'All':
                 return new AllToken();
             case 'Like':
-                return new LikeToken();
+                if ($hasSeenBy) {
+                    return new LikeToken();
+                } else {
+                    return new ValueToken($token);
+                }
             default:
                 return new ValueToken($token);
         }
