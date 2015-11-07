@@ -8,6 +8,14 @@
     background-color: rgba(0, 255, 0, 0.1);
 }
 
+.entity-row:nth-child(even), .entity-row:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.primary-key {
+    text-decoration: underline;
+}
+
 table.check-table {
     font-family: Verdana, Geneva, sans-serif;
     border-collapse: collapse;

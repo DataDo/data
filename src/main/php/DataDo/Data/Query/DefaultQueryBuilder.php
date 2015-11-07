@@ -79,11 +79,11 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
 
         foreach ($tokens->getTokens() as $token) {
             if ($token instanceof ByToken) {
-                return $this->fieldsToSQL($fields);
+                return $this->fieldsToSQL($fields, $class, $namingConvention);
             }
 
             if ($token instanceof AllToken) {
-                return $this->fieldsToSQL([]);
+                return $this->fieldsToSQL([], $class, $namingConvention);
             }
 
             if ($token instanceof AndToken) {
@@ -95,10 +95,10 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
                 throw new DslSyntaxException('Unexpected token ' . $token->getName() . ' in field selector', DATADO_UNEXPECTED_TOKEN);
             }
 
-            $fields[] = $this->tokenToColumn($token, $namingConvention, $class);
+            $fields[] = $token;
         }
 
-        return $this->fieldsToSQL($fields);
+        return $this->fieldsToSQL($fields, $class, $namingConvention);
     }
 
     /**
@@ -136,7 +136,7 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
                     $result .= ' LIKE ? ';
                     $lastToken = $token;
                     continue;
-                } else if($lastToken instanceof ValueToken) {
+                } else if ($lastToken instanceof ValueToken) {
                     $result .= ' = ? ';
                 }
                 $expectingValue = true;
@@ -153,8 +153,8 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
 
 
         }
-        
-        if($lastToken instanceof ValueToken) {
+
+        if ($lastToken instanceof ValueToken) {
             $result .= ' = ?';
         }
 
@@ -190,12 +190,23 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
         return $namingConvention->propertyToColumnName($property);
     }
 
-    private function fieldsToSQL($fields)
+    private function fieldsToSQL(array $fields, ReflectionClass $class, NamingConvention $namingConvention)
     {
         if (0 === count($fields)) {
-            return '*';
+            // We need all fields
+            foreach ($class->getProperties() as $prop) {
+                $fields[] = $prop->getName();
+            }
         }
 
-        return implode($fields, ', ');
+        $namedFields = array_map(
+            function ($field) use($namingConvention, $class) {
+                $columnName = $namingConvention->propertyToColumnName($class->getProperty($field));
+                return "$columnName as $field";
+            },
+            $fields
+        );
+
+        return implode($namedFields, ', ');
     }
 }

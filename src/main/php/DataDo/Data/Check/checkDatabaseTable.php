@@ -46,4 +46,22 @@
             </td>
         </tr>
     <?php endforeach; ?>
+    <?php if ($showAllData): $entities = $this->findAll(); ?>
+        <tr>
+            <th rowspan="<?= count($entities) + 1 ?>">Entities</th>
+            <td colspan="3"></td>
+        </tr>
+        <?php foreach ($entities as $entity): ?>
+            <tr class="entity-row">
+                <td colspan="3">
+                    <?php
+                    ob_start();
+                    var_dump($entity);
+                    echo ob_get_clean();
+                    ?>
+                </td>
+
+            </tr>
+        <?php endforeach; ?>
+    <?php endif; ?>
 </table>
