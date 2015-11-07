@@ -134,7 +134,9 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
             } else {
                 if ($token instanceof LikeToken) {
                     $result .= ' LIKE ? ';
-                } else {
+                    $lastToken = $token;
+                    continue;
+                } else if($lastToken instanceof ValueToken) {
                     $result .= ' = ? ';
                 }
                 $expectingValue = true;
