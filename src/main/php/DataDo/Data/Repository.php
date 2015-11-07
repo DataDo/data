@@ -137,7 +137,8 @@ class Repository
      * @return mixed the entity
      * @throws ErrorException
      */
-    public function get($id) {
+    public function get($id)
+    {
         $idName = ucfirst($this->idProperty->getName());
         return $this->__call("getBy$idName", array($id));
     }
@@ -148,7 +149,8 @@ class Repository
      * @return mixed the entity
      * @throws ErrorException
      */
-    public function delete($id) {
+    public function delete($id)
+    {
         $idName = ucfirst($this->idProperty->getName());
         return $this->__call("deleteBy$idName", array($id));
     }
@@ -161,7 +163,13 @@ class Repository
         return $this->entityClass;
     }
 
-
+    /**
+     * @return ReflectionProperty
+     */
+    public function getIdProperty()
+    {
+        return $this->idProperty;
+    }
 
     /**
      * Call a dsl method and create it if it does not exist.
@@ -219,7 +227,7 @@ class Repository
             } catch (PDOException $e) {
                 throw new DslSyntaxException('Failed to run query [' . $methodName . '] with parameters ' . print_r(func_get_args(), true));
             }
-            
+
             switch ($query->getResultMode()) {
                 case QueryBuilderResult::RESULT_SELECT_SINGLE:
                     return $sth->fetch();
