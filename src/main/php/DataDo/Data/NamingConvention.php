@@ -22,23 +22,10 @@ interface NamingConvention
     public function classToTableName($class);
 
     /**
-     * Clean up a table name as a final step.
-     * @param $tableName string the raw table name
-     * @return string the physical table name
-     */
-    public function tableName($tableName);
-
-    /**
      * Transform a property to a column name.
      * @param $property ReflectionProperty the property to build a table column for
      * @return string the column name
      */
     public function propertyToColumnName($property);
 
-    /**
-     * Clean up a column name as a final step.
-     * @param $columnName string the raw column name
-     * @return string the physical column name
-     */
-    public function columnName($columnName);
 }

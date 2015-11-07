@@ -14,6 +14,7 @@ use ErrorException;
 use PDO;
 use ReflectionClass;
 use ReflectionProperty;
+use stdClass;
 
 /**
  * This class is responsible for the communication with the database for your simple queries.
@@ -56,7 +57,7 @@ class Repository
         $this->queryBuilder = new DefaultQueryBuilder();
         $this->methodParser = new DefaultMethodNameParser();
         $this->namingContention = new DefaultNamingConvention();
-        $this->tableName = $this->namingContention->tableName($this->namingContention->classToTableName($this->entityClass));
+        $this->tableName = $this->namingContention->classToTableName($this->entityClass);
     }
 
     /**
@@ -103,7 +104,7 @@ class Repository
 
         $values = $this->getInsertValues($entity, $this->namingContention);
         $keyString = implode(array_keys($values), ' = ?,') . ' = ?';
-        $idColumn = $this->namingContention->columnName($this->namingContention->propertyToColumnName($this->idProperty));
+        $idColumn = $this->namingContention->propertyToColumnName($this->idProperty);
         $onlyValues = array_values($values);
         $onlyValues[] = $id;
 
@@ -217,10 +218,51 @@ class Repository
         $result = [];
         foreach ($this->entityClass->getProperties() as $property) {
             $property->setAccessible(true);
-            $columnName = $namingContention->columnName($namingContention->propertyToColumnName($property));
+            $columnName = $namingContention->propertyToColumnName($property);
 
             $result[$columnName] = $property->getValue($entity);
         }
         return $result;
+    }
+
+    public function checkDatabase()
+    {
+        $sth = $this->pdo->prepare('SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = ?');
+        $sth->execute(array($this->tableName));
+        $tableProperties = $sth->fetchAll();
+        $classProperties = $this->entityClass->getProperties();
+
+        $properties = [];
+
+        foreach ($tableProperties as $prop) {
+            $newProp = new stdClass();
+            $newProp->actualColumnName = $prop['COLUMN_NAME'];
+            $properties[$newProp->actualColumnName] = $newProp;
+        }
+
+        foreach ($classProperties as $prop) {
+            $expectedColumnName = $this->namingContention->propertyToColumnName($prop);
+            if (array_key_exists($expectedColumnName, $properties)) {
+                $newProp = $properties[$expectedColumnName];
+            } else {
+                $newProp = new stdClass();
+                $properties[$expectedColumnName] = $newProp;
+            }
+            $newProp->propertyName = $prop->getName();
+            $newProp->expectedColumnName = $expectedColumnName;
+        }
+
+        $issetor = function (&$value, $default = '') {
+            return isset($value) ? $value : $default;
+        };
+
+        $getClass = function (stdClass $prop) use ($issetor) {
+            return $issetor($prop->expectedColumnName) === $issetor($prop->actualColumnName) ? 'correct' : 'error';
+        };
+
+        ;
+
+
+        include 'Check/checkDatabaseTable.php';
     }
 }
