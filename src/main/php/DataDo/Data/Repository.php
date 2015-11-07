@@ -284,7 +284,7 @@ class Repository
         $getClass = function (stdClass $prop) use ($issetOr) {
             $classes = $issetOr($prop->expectedColumnName) === $issetOr($prop->actualColumnName) ? 'correct' : 'error';
 
-            if($prop->propertyName === $this->idProperty->getName()) {
+            if($issetOr($prop->propertyName) === $this->idProperty->getName()) {
                 $classes .= ' primary-key';
             }
 
