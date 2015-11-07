@@ -17,15 +17,15 @@
     </tr>
     <tr>
         <th>Driver</th>
-        <td colspan="3"><?= $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) ?></td>
+        <td colspan="3"><?= $pdoAtt(PDO::ATTR_DRIVER_NAME) ?></td>
     </tr>
     <tr>
         <th>Connection</th>
-        <td colspan="3"><?= $this->pdo->getAttribute(PDO::ATTR_CONNECTION_STATUS) ?></td>
+        <td colspan="3"><?= $pdoAtt(PDO::ATTR_CONNECTION_STATUS) ?></td>
     </tr>
     <tr>
         <th>Database Status</th>
-        <td colspan="3"><?= $this->pdo->getAttribute(PDO::ATTR_SERVER_INFO) ?></td>
+        <td colspan="3"><?= $pdoAtt(PDO::ATTR_SERVER_INFO) ?></td>
     </tr>
     <tr>
         <th rowspan="<?= count($properties) + 1 ?>">Properties</th>
@@ -36,13 +36,13 @@
     <?php foreach ($properties as $prop): ?>
         <tr class="<?= $getClass($prop) ?>">
             <td>
-                <?= $issetor($prop->propertyName) ?>
+                <?= $issetOr($prop->propertyName) ?>
             </td>
             <td>
-                <?= $issetor($prop->expectedColumnName) ?>
+                <?= $issetOr($prop->expectedColumnName) ?>
             </td>
             <td>
-                <?= $issetor($prop->actualColumnName) ?>
+                <?= $issetOr($prop->actualColumnName) ?>
             </td>
         </tr>
     <?php endforeach; ?>

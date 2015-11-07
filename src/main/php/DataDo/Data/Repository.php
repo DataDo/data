@@ -12,6 +12,7 @@ use DataDo\Data\Query\QueryBuilder;
 use DataDo\Data\Query\QueryBuilderResult;
 use ErrorException;
 use PDO;
+use PDOException;
 use ReflectionClass;
 use ReflectionProperty;
 use stdClass;
@@ -225,10 +226,26 @@ class Repository
         return $result;
     }
 
+    /**
+     * This method will run some analysis on the correctness of your configuration. It will be exported to the screen.
+     */
     public function checkDatabase()
     {
-        $sth = $this->pdo->prepare('SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = ?');
-        $sth->execute(array($this->tableName));
+        switch($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)) {
+            case 'mysql':
+                $sth = $this->pdo->prepare('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = ?');
+                $sth->execute(array($this->tableName));
+                $columnNameColumn = 'COLUMN_NAME';
+                break;
+            case 'sqlite':
+                $sth = $this->pdo->prepare("PRAGMA table_info($this->tableName)");
+                $sth->execute();
+                $columnNameColumn = 'name';
+                break;
+            default:
+                echo '<p>SQL Driver: ' . $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) . ' is not supported by the checking tool... sorry</p>' . PHP_EOL;
+                return;
+        }
         $tableProperties = $sth->fetchAll();
         $classProperties = $this->entityClass->getProperties();
 
@@ -236,7 +253,7 @@ class Repository
 
         foreach ($tableProperties as $prop) {
             $newProp = new stdClass();
-            $newProp->actualColumnName = $prop['COLUMN_NAME'];
+            $newProp->actualColumnName = $prop[$columnNameColumn];
             $properties[$newProp->actualColumnName] = $newProp;
         }
 
@@ -252,12 +269,20 @@ class Repository
             $newProp->expectedColumnName = $expectedColumnName;
         }
 
-        $issetor = function (&$value, $default = '') {
+        $issetOr = function (&$value, $default = '') {
             return isset($value) ? $value : $default;
         };
 
-        $getClass = function (stdClass $prop) use ($issetor) {
-            return $issetor($prop->expectedColumnName) === $issetor($prop->actualColumnName) ? 'correct' : 'error';
+        $pdoAtt = function($att) {
+            try {
+                return $this->pdo->getAttribute($att);
+            } catch(PDOException $e) {
+                return 'Not supported by driver';
+            }
+        };
+
+        $getClass = function (stdClass $prop) use ($issetOr) {
+            return $issetOr($prop->expectedColumnName) === $issetOr($prop->actualColumnName) ? 'correct' : 'error';
         };
 
         ;
