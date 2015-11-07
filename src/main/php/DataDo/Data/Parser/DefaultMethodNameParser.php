@@ -7,6 +7,7 @@ use DataDo\Data\MethodNameToken;
 use DataDo\Data\Tokens\AllToken;
 use DataDo\Data\Tokens\AndToken;
 use DataDo\Data\Tokens\ByToken;
+use DataDo\Data\Tokens\LikeToken;
 use DataDo\Data\Tokens\OrToken;
 use DataDo\Data\Tokens\Token;
 use DataDo\Data\Tokens\ValueToken;
@@ -93,6 +94,8 @@ class DefaultMethodNameParser extends AbstractMethodNameParser
                 return new ByToken();
             case 'All':
                 return new AllToken();
+            case 'Like':
+                return new LikeToken();
             default:
                 return new ValueToken($token);
         }

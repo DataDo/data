@@ -9,6 +9,7 @@ use DataDo\Data\NamingConvention;
 use DataDo\Data\Tokens\AllToken;
 use DataDo\Data\Tokens\AndToken;
 use DataDo\Data\Tokens\ByToken;
+use DataDo\Data\Tokens\LikeToken;
 use DataDo\Data\Tokens\OrToken;
 use DataDo\Data\Tokens\ValueToken;
 use ReflectionClass;
@@ -112,6 +113,7 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
         $hasSeenBy = false;
         $expectingValue = true;
         $result = 'WHERE ';
+        $lastToken = null;
         foreach ($tokens->getTokens() as $token) {
             // Check if we are processing yet
             if (!$hasSeenBy) {
@@ -127,18 +129,25 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
                 if (!($token instanceof ValueToken)) {
                     throw new DslSyntaxException('Expected value token in constraint query at ' . $token->getSource(), DATADO_UNEXPECTED_TOKEN);
                 }
-                $result .= $this->tokenToColumn($token, $namingConvention, $class) . ' = ?';
+                $result .= $this->tokenToColumn($token, $namingConvention, $class);
                 $expectingValue = false;
             } else {
+                if ($token instanceof LikeToken) {
+                    $result .= ' LIKE ? ';
+                } else {
+                    $result .= ' = ? ';
+                }
                 $expectingValue = true;
                 if ($token instanceof AndToken) {
                     $result .= ' AND ';
                 } else if ($token instanceof OrToken) {
                     $result .= ' OR ';
-                } else {
+                } else if (!($token instanceof LikeToken)) {
                     throw new DslSyntaxException('Expected And or Or token at ' . $token->getSource(), DATADO_UNEXPECTED_TOKEN);
                 }
             }
+
+            $lastToken = $token;
 
 
         }
