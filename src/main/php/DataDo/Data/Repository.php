@@ -342,6 +342,14 @@ class Repository
             return $classes;
         };
 
+        if ($showAllData) {
+            try {
+                $entities = $this->findAll();
+            } catch (PDOException $e) {
+                $entities = [];
+            }
+        }
+
 
         include 'Check/checkDatabaseTable.php';
     }
