@@ -342,11 +342,13 @@ class Repository
             return $classes;
         };
 
+        $entitiesError = false;
+        $entities = [];
         if ($showAllData) {
             try {
                 $entities = $this->findAll();
-            } catch (PDOException $e) {
-                $entities = [];
+            } catch (\Exception $e) {
+                $entitiesError = $e;
             }
         }
 

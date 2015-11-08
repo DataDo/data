@@ -48,19 +48,27 @@
     <?php endforeach; ?>
     <?php if ($showAllData): ?>
         <tr>
-            <th rowspan="<?= count($entities) + 1 ?>">Entities (<?=count($entities)?>)</th>
+            <th rowspan="<?= count($entities) + 1 + ($entitiesError ? 1 : 0) ?>">Entities (<?= count($entities) ?>)</th>
         </tr>
-        <?php foreach ($entities as $entity): ?>
-            <tr class="entity-row">
+        <?php if ($entitiesError): ?>
+            <tr>
                 <td colspan="3">
-                    <?php
-                    ob_start();
-                    var_dump($entity);
-                    echo ob_get_clean();
-                    ?>
+                    <?=$entitiesError->getMessage() . ' Check your table mapping.'?>
                 </td>
-
             </tr>
-        <?php endforeach; ?>
+        <?php else: ?>
+            <?php foreach ($entities as $entity): ?>
+                <tr class="entity-row">
+                    <td colspan="3">
+                        <?php
+                        ob_start();
+                        var_dump($entity);
+                        echo ob_get_clean();
+                        ?>
+                    </td>
+
+                </tr>
+            <?php endforeach; endif; ?>
+
     <?php endif; ?>
 </table>
