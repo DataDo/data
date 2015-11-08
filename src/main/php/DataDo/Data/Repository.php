@@ -52,6 +52,7 @@ class Repository
     public function __construct($class, PDO $pdo, $idProperty)
     {
         $this->pdo = $pdo;
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->entityClass = new ReflectionClass($class);
         $this->idProperty = $this->entityClass->getProperty($idProperty);
         $this->idProperty->setAccessible(true);
