@@ -271,7 +271,9 @@ class Repository
             if (is_bool($value)) {
                 $value = $value ? 1 : 0;
             }
-            $result[$columnName] = $value;
+            if($value !== null) {
+                $result[$columnName] = $value;
+            }
         }
         return $result;
     }
