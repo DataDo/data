@@ -9,51 +9,51 @@
     </tr>
     <tr>
         <th>Class</th>
-        <td colspan="3"><?= $this->entityClass->getName() ?></td>
+        <td colspan="3"><?php echo $this->entityClass->getName() ?></td>
     </tr>
     <tr>
         <th>Table Name</th>
-        <td colspan="3"><?= $this->tableName ?></td>
+        <td colspan="3"><?php echo $this->tableName ?></td>
     </tr>
     <tr>
         <th>Driver</th>
-        <td colspan="3"><?= $pdoAtt(PDO::ATTR_DRIVER_NAME) ?></td>
+        <td colspan="3"><?php echo $pdoAtt(PDO::ATTR_DRIVER_NAME) ?></td>
     </tr>
     <tr>
         <th>Connection</th>
-        <td colspan="3"><?= $pdoAtt(PDO::ATTR_CONNECTION_STATUS) ?></td>
+        <td colspan="3"><?php echo $pdoAtt(PDO::ATTR_CONNECTION_STATUS) ?></td>
     </tr>
     <tr>
         <th>Database Status</th>
-        <td colspan="3"><?= $pdoAtt(PDO::ATTR_SERVER_INFO) ?></td>
+        <td colspan="3"><?php echo $pdoAtt(PDO::ATTR_SERVER_INFO) ?></td>
     </tr>
     <tr>
-        <th rowspan="<?= count($properties) + 1 ?>">Properties</th>
+        <th rowspan="<?php echo count($properties) + 1 ?>">Properties</th>
         <th>Class Property</th>
         <th>Expected database column</th>
         <th>Actual database column</th>
     </tr>
     <?php foreach ($properties as $prop): ?>
-        <tr class="<?= $getClass($prop) ?>">
+        <tr class="<?php echo $getClass($prop) ?>">
             <td>
-                <?= $issetOr($prop->propertyName) ?>
+                <?php echo $issetOr($prop->propertyName) ?>
             </td>
             <td>
-                <?= $issetOr($prop->expectedColumnName) ?>
+                <?php echo $issetOr($prop->expectedColumnName) ?>
             </td>
             <td>
-                <?= $issetOr($prop->actualColumnName) ?>
+                <?php echo $issetOr($prop->actualColumnName) ?>
             </td>
         </tr>
     <?php endforeach; ?>
     <?php if ($showAllData): ?>
         <tr>
-            <th rowspan="<?= count($entities) + 1 + ($entitiesError ? 1 : 0) ?>">Entities (<?= count($entities) ?>)</th>
+            <th rowspan="<?php echo count($entities) + 1 + ($entitiesError ? 1 : 0) ?>">Entities (<?php echo count($entities) ?>)</th>
         </tr>
         <?php if ($entitiesError): ?>
             <tr>
                 <td colspan="3">
-                    <?=$entitiesError->getMessage() . ' Check your table mapping.'?>
+                    <?php echo$entitiesError->getMessage() . ' Check your table mapping.'?>
                 </td>
             </tr>
         <?php else: ?>
