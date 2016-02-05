@@ -121,7 +121,7 @@ class DefaultQueryBuilder extends AbstractQueryBuilder
             $namedFields = @array_map(
                 function ($field) use ($namingConvention, $class) {
                     $columnName = $namingConvention->propertyToColumnName($class->getProperty($field));
-                    return "\"$columnName\" as \"$field\"";
+                    return "`$columnName` as \"$field\"";
                 },
                 $fields
             );
